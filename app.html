@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Problems Solver - By Omar Keshk</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        body{
+            background-color: #c8d8e4;
+        }
+        header{
+            padding: 1vh 0;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #2b6777;
+            font-size: 3em;
+            border-bottom: 0.5vh solid #000;
+        }
+        #calculator_container{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #calculator{
+            margin: 2vh 0;
+        }
+        input{
+            font-size: 1em;
+            width: max-content;
+            margin: 1vh 2vw;
+        }
+        .label{
+            font-size: 1em;
+        }
+        #n_container, #forces_mag, #r_container, #forces_angles{
+            width: 100%;
+        }
+        .field_container{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #btns{
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+        }
+        button{
+            padding: 0.4em;
+            border: 1px solid #000;
+            font-size: 3vw;
+        }
+        button:hover{
+            background-color: #bbb;
+            cursor: pointer;
+        }
+        
+    </style>
+</head>
+<body>
+    <header>Force Problems Solver <br> <span style="font-size: 0.5em;">By: Omar Keshk</span></header>
+    <div id="calculator_container">
+        <div id="calculator">
+            <div id="n_container">
+                <div class="field_container">
+                    <span class="label">Number of Forces: </span>
+                    <input type="number" id="n" value="2">
+                </div>
+            </div>
+            <hr>
+            <div id="forces_mag">
+                <div class="field_container">
+                    <span class="label">Force 1 Magnitude: </span>
+                    <input type="text" id="f1">
+                </div>
+                <div class="field_container">
+                    <span class="label">Force 2 Magnitude: </span>
+                    <input type="text" id="f2">
+                </div>
+            </div>
+            <div id="forces_angles">
+                <div class="field_container">
+                    <span class="label">Angle between F1 and R: </span>
+                    <input type="text" id="a1">
+                </div>
+                <div class="field_container">
+                    <span class="label">Angle between F2 and R: </span>
+                    <input type="text" id="a2">
+                </div>
+            </div>
+            <div id="r_container">
+                <div class="field_container">
+                    <span class="label">Resultant Magnitude: </span>
+                    <input type="text" id="rm">
+                </div>
+                <div class="field_container">
+                    <span class="label" id="last">Angle Between 2 Forces: </span>
+                    <input type="text" id="ra">
+                </div>
+            </div>
+            <div id="btns">
+                <button id="clr" style="font-size: 1.5vw;">Clear All</button>
+                <button id="calc">Calculate</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.onkeydown = () =>{
+            if(window.event.keyCode == "13"){
+                document.getElementById("calc").click()
+            }
+        }
+        class Force{
+            constructor(m, a, known){
+                this.m = m
+                this.a = a
+                this.known = known
+            }
+        }
+        let fn = 2
+        let forces = {}
+        document.getElementById("n").addEventListener("blur", ()=>{
+            fn = document.getElementById("n").value
+            forces = {}
+            if(fn <= 2){
+                fn = 2
+                document.getElementById("last").innerText = "Angle Between 2 Forces: "
+                document.getElementById("forces_mag").innerHTML = ""
+                for(i=0;i<fn;i++){
+                    new_label = document.createElement("span")
+                    new_label.innerText = `Force ${i +1} Magnitude:`
+                    new_input = document.createElement("input")
+                    new_input.setAttribute("type", "text")
+                    new_input.setAttribute("id", `f${i+1}`)
+                    new_input.classList.toggle("f")
+                    new_field = document.createElement("div")
+                    new_label.classList.toggle("label")
+                    new_field.classList.toggle("field_container")
+                    new_field.appendChild(new_label)
+                    new_field.appendChild(new_input)
+                    document.getElementById("forces_mag").appendChild(new_field)
+                }
+                document.getElementById("forces_angles").innerHTML = ""
+                for(i=0;i<fn;i++){
+                    new_label = document.createElement("span")
+                    new_label.innerText = `Angle between F${i +1} and R:`
+                    new_input = document.createElement("input")
+                    new_input.setAttribute("type", "text")
+                    new_input.setAttribute("id", `a${i+1}`)
+                    new_input.classList.toggle("a")
+                    new_field = document.createElement("div")
+                    new_label.classList.toggle("label")
+                    new_field.classList.toggle("field_container")
+                    new_field.appendChild(new_label)
+                    new_field.appendChild(new_input)
+                    document.getElementById("forces_angles").appendChild(new_field)
+                }
+            }
+            if(fn > 100){
+                fn = 100
+            }
+            if(fn > 2){
+                document.getElementById("last").innerText = "Resultant Angle: "
+                document.getElementById("forces_mag").innerHTML = ""
+                for(i=0;i<fn;i++){
+                    new_label = document.createElement("span")
+                    new_label.innerText = `Force ${i +1} Magnitude:`
+                    new_input = document.createElement("input")
+                    new_input.setAttribute("type", "text")
+                    new_input.setAttribute("id", `f${i+1}`)
+                    new_input.classList.toggle("f")
+                    new_field = document.createElement("div")
+                    new_label.classList.toggle("label")
+                    new_field.classList.toggle("field_container")
+                    new_field.appendChild(new_label)
+                    new_field.appendChild(new_input)
+                    document.getElementById("forces_mag").appendChild(new_field)
+                }
+                document.getElementById("forces_angles").innerHTML = ""
+                for(i=0;i<fn;i++){
+                    new_label = document.createElement("span")
+                    new_label.innerText = `Force ${i+1} Angle:`
+                    new_input = document.createElement("input")
+                    new_input.setAttribute("type", "text")
+                    new_input.setAttribute("id", `a${i+1}`)
+                    new_input.classList.toggle("a")
+                    new_field = document.createElement("div")
+                    new_label.classList.toggle("label")
+                    new_field.classList.toggle("field_container")
+                    new_field.appendChild(new_label)
+                    new_field.appendChild(new_input)
+                    document.getElementById("forces_angles").appendChild(new_field)
+                }
+            }
+            for(i=0;i<document.querySelectorAll("input").length;i++){
+                document.querySelectorAll("input")[i].value = ""
+            }
+            document.getElementById("n").value = fn
+        })
+        document.getElementById("calc").onclick = ()=>{
+            forces = {}
+            for(i=0;i<fn;i++){
+                if(document.getElementById(`f${i+1}`).value === ""){
+                    forces[`f${i+1}`] = new Force(null, null, false)
+                }else{
+                    forces[`f${i+1}`] = new Force(null, null, true)
+                }
+            }
+            if(fn == 2){
+                if(document.getElementById("rm").value === ""){
+                    forces['r'] = new Force(null, null, false)
+                }else{
+                    forces['r'] = new Force(null, null, true)
+                }
+                forces['r'].m = proot(document.getElementById("rm").value)
+                forces['r'].a = parseFloat(document.getElementById("ra").value)
+                forces['f1'].m = proot(document.getElementById("f1").value)
+                forces['f1'].a = parseFloat(document.getElementById("a1").value)
+                forces['f2'].m = proot(document.getElementById("f2").value)
+                forces['f2'].a = parseFloat(document.getElementById("a2").value)
+                r = forces['r']
+                f1 = forces['f1']
+                f2 = forces['f2']
+                rounds = 0
+                for(force in forces){
+                    if(isNaN(forces[force].a)){
+                        forces[force].a = ""
+                    }
+                    if(isNaN(forces[force].m)){
+                        forces[force].m = ""
+                    }
+                }
+                while(rounds < 10){
+                    if(forces['f1'].a === "" && forces['r'].a != "" && forces['f2'].a != ""){
+                        forces['f1'].a = forces['r'].a - forces['f2'].a
+                    }
+                    if(forces['f2'].a === "" && forces['r'].a != "" && forces['f1'].a != ""){
+                        forces['f2'].a = forces['r'].a - forces['f1'].a
+                    }
+                    if(forces['r'].a === "" && forces['f1'].a != "" && forces['f2'].a != ""){
+                        forces['r'].a = forces['f2'].a + forces['f1'].a
+                    }
+                    if(r.m === "" && f1.m != "" && f2.m != "" && r.a != ""){
+                        r.m = (Math.sqrt(Math.pow(f1.m, 2) + Math.pow(f2.m, 2) + (2 * f1.m * f2.m * Math.cos(toRadians(r.a))))).toFixed(3)
+                    }
+                    if(f1.a === "" && f1.m != "" && f2.m != "" && r.a != ""){
+                        f1.a = (toDegrees(Math.atan((f2.m * Math.sin(toRadians(r.a)))/(f1.m+(f2.m * Math.cos(toRadians(r.a))))))).toFixed(3)
+                    }
+                    if(f1.m === "" && f2.a != "" && f1.a != "" && f2.m != ""){
+                        f1.m = ((f2.m * Math.sin(toRadians(f2.a))) / Math.sin(toRadians(f1.a)))
+                    }        
+                    if(f2.m === "" && f2.a != "" && f1.a != "" && f1.m != ""){
+                        f2.m = ((f1.m * Math.sin(toRadians(f1.a))) / Math.sin(toRadians(f2.a)))
+                    }
+                    if(f1.m === "" && r.m != "" && f2.a != "" && f1.a != ""){
+                        f1.m = ((r.m * Math.sin(toRadians(f2.a))) / Math.sin(toRadians(f2.a + f1.a)))
+                    }
+                    if(f2.m === "" && r.m != "" && f2.a != "" && f1.a != ""){
+                        f2.m = ((r.m * Math.sin(toRadians(f1.a))) / Math.sin(toRadians(f2.a + f1.a)))
+                    }
+                    if(r.a === "" && r.m != "" && f1.m != "" && f2.m != ""){
+                        r.a = (toDegrees(Math.acos(((r.m ** 2) - (f1.m ** 2) - (f2.m ** 2))/(2 * f1.m * f2.m))))
+                    }
+                    if(r.a === "" && r.m != "" && f1.m != "" && f2.m != ""){
+                        r.a = (toDegrees(Math.acos(((r.m ** 2) - (f1.m ** 2) - (f2.m ** 2))/(2 * f1.m * f2.m))))
+                    }
+                    if(f1.a == 90 && f1.m != "" && f2.m != ""){
+                        r.a = toDegrees(Math.acos(-(f1.m / f2.m)))
+                    }
+                    if(f2.a == 90 && f1.m != "" && f2.m != ""){
+                        r.a = toDegrees(Math.acos(-(f2.m / f1.m)))
+                    }
+                    if(r.a == 90 && r.m != "" && f2.m != ""){
+                        f1.m = Math.sqrt(Math.pow(r.m, 2) - Math.pow(f2.m, 2))
+                    }
+                    if(r.a == 90 && r.m != "" && f1.m != ""){
+                        f2.m = Math.sqrt(Math.pow(r.m, 2) - Math.pow(f1.m, 2))
+                    }
+                    if(typeof r.a !== 'string'){
+                        if(r.a === 0 && f1.m != "" && f2.m != ""){
+                            r.m = f1.m + f2.m
+                            f1.a = 0
+                            f2.a = 0
+                        }
+                    }
+                    rounds++
+                }
+                document.getElementById("rm").value = (forces['r'].known ? document.getElementById("rm").value : roundo(simRoot(checkRoot(forces['r'].m))))
+                document.getElementById("ra").value = (document.getElementById("ra").value.includes("'") ? document.getElementById("ra").value : anglep(forces['r'].a))
+                document.getElementById("f1").value = (forces['f1'].known ? document.getElementById("f1").value : roundo(simRoot(checkRoot(forces['f1'].m))))
+                document.getElementById("a1").value = (document.getElementById("a1").value.includes("'") ? document.getElementById("a1").value : anglep(forces['f1'].a))
+                document.getElementById("f2").value = (forces['f2'].known ? document.getElementById("f2").value : roundo(simRoot(checkRoot(forces['f2'].m))))
+                document.getElementById("a2").value = (document.getElementById("a2").value.includes("'") ? document.getElementById("a2").value : anglep(forces['f2'].a))
+
+            }
+            else{
+                xr = 0
+                yr = 0
+                for(i=0;i<document.querySelectorAll(".f").length;i++){
+                    forces[`f${i+1}`].a = parseFloat((document.getElementById(`a${i+1}`).value))
+                    forces[`f${i+1}`].m = proot((document.getElementById(`f${i+1}`).value).toString())
+                }
+                for(force in forces){
+                    f = forces[force]
+                    xr += (f.m * Math.cos(toRadians(f.a)))
+                    yr += (f.m * Math.sin(toRadians(f.a)))
+                }
+                forces['r'] = new Force(null, null)
+                forces['r'].m = Math.sqrt(Math.pow(xr, 2) + Math.pow(yr, 2))
+                forces['r'].a = Math.abs(toDegrees(Math.atan( yr / xr )))
+                if(xr > -0.001 && xr < 0.001){
+                    xr = 0
+                }
+                if(yr > -0.001 && yr < 0.001){
+                    yr = 0
+                }
+                if(xr === 0 && yr != 0){
+                    if(yr > 0){
+                        forces['r'].a = 90
+                    }
+                    else if(yr < 0){
+                        forces['r'].a = 270
+                    }
+                }
+                if(yr === 0 && xr != 0){
+                    if(xr > 0){
+                        forces['r'].a = 0
+                    }
+                    else if(xr < 0){
+                        forces['r'].a = 270
+                    }
+                }
+                if(yr === 0 && xr === 0){
+                    forces['r'].m = 0
+                }
+                if(forces['r'].m === 0){
+                    forces['r'].a = 0
+                }
+                if(xr < 0 && yr < 0){
+                    forces['r'].a = forces['r'].a + 180
+                }
+                if(xr < 0 && yr > 0){
+                    forces['r'].a = 180 - forces['r'].a
+                }
+                if(!isNaN(forces['r'].m)){
+                    document.getElementById("rm").value = roundo(simRoot(checkRoot(forces['r'].m)))
+                    document.getElementById("ra").value = anglep((forces['r'].a))
+                }
+            }
+        }
+        document.getElementById("clr").onclick = ()=>{
+            forces = {}
+            for(i=0;i<document.querySelectorAll("input").length;i++){
+                document.querySelectorAll("input")[i].value = ""
+            }
+            document.getElementById("n").value = 2
+            fn = document.getElementById("n").value
+
+            if(fn < 2){
+                fn = 2
+            }
+            document.getElementById("last").innerText = "Angle Between 2 Forces: "
+            document.getElementById("forces_mag").innerHTML = ""
+            for(i=0;i<fn;i++){
+                new_label = document.createElement("span")
+                new_label.innerText = `Force ${i +1} Magnitude: `
+                new_input = document.createElement("input")
+                new_input.setAttribute("type", "text")
+                new_input.setAttribute("id", `f${i+1}`)
+                new_input.classList.toggle("f")
+                new_field = document.createElement("div")
+                new_label.classList.toggle("label")
+                new_field.classList.toggle("field_container")
+                new_field.appendChild(new_label)
+                new_field.appendChild(new_input)
+                document.getElementById("forces_mag").appendChild(new_field)
+            }
+            document.getElementById("forces_angles").innerHTML = ""
+            for(i=0;i<fn;i++){
+                new_label = document.createElement("span")
+                new_label.innerText = `Angle between F${i +1} and R:`
+                new_input = document.createElement("input")
+                new_input.setAttribute("type", "text")
+                new_input.setAttribute("id", `a${i+1}`)
+                new_input.classList.toggle("a")
+                new_field = document.createElement("div")
+                new_label.classList.toggle("label")
+                new_field.classList.toggle("field_container")
+                new_field.appendChild(new_label)
+                new_field.appendChild(new_input)
+                document.getElementById("forces_angles").appendChild(new_field)
+            }
+        }
+        simRoot = (num) =>{
+            if(typeof num === 'string'){
+                if(num.includes("<") && num.includes(">")){
+                    isRoot = false
+                outside_root = 1
+                inside_root = parseInt(num.replace("<","").replace(">",""))
+                d = 2
+                while(d * d <= inside_root){
+                    if(inside_root % (d * d) === 0){
+                    inside_root = inside_root / (d * d)
+                    outside_root = outside_root * d
+                    }
+                    else{
+                        d = d + 1
+                    }
+                }
+                if(inside_root == 1 || inside_root === ""){
+                    num = outside_root
+                }
+                else if(outside_root == 1 || outside_root === ""){
+                    num = `<${inside_root}>`
+                }else{
+                    num = `${outside_root}<${inside_root}>`
+                }
+                if(typeof num !== 'string'){
+                    if(isNaN(num)){
+                        num = ""
+                    }
+                }
+                }
+            }
+
+            return num
+        }
+        proot = (str) =>{
+            let root = ""
+            let num = ""
+            let isRoot = false
+            if(str.includes("<") && str.includes(">")){
+                for(j=0;j<str.length;j++){
+                    if(isRoot){
+                        root = root.concat(str[j])
+                    }
+                    if(!isRoot && str[j] != ">" && str[j] != "<"){
+                        num = num.concat(str[j])
+                    }
+                    if(str[j] == "<"){
+                        isRoot = true
+                    }
+                    if(str[j] == ">"){
+                        isRoot = false
+                    }
+                }
+                num = parseFloat(num)
+                root = Math.sqrt(parseFloat(root))
+                if(isNaN(num)){
+                    return root
+                }
+                return num * root
+            }
+            return parseFloat(str)
+        }
+        checkRoot = (num)=>{
+            if((parseInt((num ** 2).toFixed(0)) - (num ** 2)) < 0.01 && num % 1 != 0){
+                num = `<${parseInt((num ** 2).toFixed(0))}>`
+            }
+            return num
+        }
+        inRootForm = (str) => str.includes("<") && str.includes(">")
+        anglep = (deg)=> {
+            if(deg === ""){
+                return ""
+            }
+            if(deg === 0){
+                return "0°"
+            }
+            if(deg != ""){
+                if((0|deg*60%1*60) === 0){
+                    if((0|(deg<0?deg=-deg:deg)%1*60) === 0){
+                        return [0|deg, '°'].join('')
+                    }
+                    return [0|deg, '° ', 0|(deg<0?deg=-deg:deg)%1*60, "'"].join('')
+                }
+                if((0|deg*60%1*60) == 59){
+                    return [(0|deg) +1, '°'].join('')
+                }
+                return [0|deg, '° ', 0|(deg<0?deg=-deg:deg)%1*60, "' ", 0|deg*60%1*60, '"'].join('')
+            }else{
+                return ""
+            }
+        }
+        toRadians = (degrees) => degrees * (Math.PI/180)
+        toDegrees = (angle) => angle * (180 / Math.PI)
+        roundo = (num) => {
+            if(num === ""){
+                return ""
+            }
+            if(num % 1 === 0){
+                return parseInt(num)
+            }
+            if(typeof num === 'string'){
+                if(num.includes("<") && num.includes(">")){
+                    return num
+                }else{
+                    return Math.round((parseFloat(num) + Number.EPSILON) * 100) / 100
+                }
+            }else{
+                console.log(num)
+                console.log(Math.round((num + Number.EPSILON) * 100) / 100)
+                return Math.round((num + Number.EPSILON) * 100) / 100
+            }
+        }
+    </script>
+</body>
+</html>
