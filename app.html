@@ -64,7 +64,23 @@
             background-color: #bbb;
             cursor: pointer;
         }
-        
+        @media only screen and (max-width: 600px) {
+            header{
+                font-size: 2em;
+            }
+            button{
+                font-size: 20px;
+            }
+            #calculator{
+                margin: 0 15px;
+            }
+            input{
+                margin: 10px 0;
+            }
+            .label{
+                font-size: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -109,7 +125,7 @@
                 </div>
             </div>
             <div id="btns">
-                <button id="clr" style="font-size: 1.5vw;">Clear All</button>
+                <button id="clr">Clear All</button>
                 <button id="calc">Calculate</button>
             </div>
         </div>
